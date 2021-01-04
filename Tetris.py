@@ -2,6 +2,8 @@ import pygame
 import random
 import os
 import sys
+import time
+from pygame.locals import *
 
 FPS = 25
 WHITE = (255, 255, 255)
@@ -16,10 +18,6 @@ LGREEN = (30, 175, 20)
 BLUE = (0, 0, 155)
 LBLUE = (30, 30, 175)
 
-COLOR_TEXT = WHITE
-COLOR_WALL = BLUE
-COLOR_FON = BLACK
-COLOR_SHADOW = GRAY
 COLORS = (GREEN, YELLOW, RED, BLUE)
 LCOLORS = (LBLUE, LGREEN, LRED, LYELLOW)
 
@@ -150,8 +148,31 @@ pygame.init()
 screen = pygame.display.set_mode((500, 500))
 pygame.display.set_caption('Tetris')
 clock = pygame.time.Clock()
-font_big = pygame.font.Font(None, 180)
-font_small = pygame.font.Font(None, 35)
+
+font1 = pygame.font.Font(None, 180)
+font2 = pygame.font.Font(None, 30)
+font3 = pygame.font.Font(None, 110)
+
+
+def print_text(text):
+    text_disp, text_rect = parameter(text, font3, WHITE)
+    text_rect.center = (247, 247)
+    screen.blit(text_disp, text_rect)
+    while check_key() == None:
+        pygame.display.update()
+        clock.tick()
+
+
+def parameter(text, font, color):
+    disp = font.render(text, True, color)
+    return disp, disp.get_rect()
+
+
+def check_key():
+    for event in pygame.event.get([KEYDOWN, KEYUP]):
+        if event.type == KEYDOWN or event.type == KEYUP:
+            return event.key
+    return None
 
 
 def load_image(name, colorkey=None):
@@ -224,6 +245,37 @@ def main():
 
         pygame.display.flip()
         clock.tick(FPS)
+
+
+def play():
+    board = board_creation()
+    score = 0
+    move_left = False
+    move_down = False
+    move_right = False
+    ld = time.time()
+    ls = time.time()
+    lf = time.time()
+    now = new_figure()
+    next = new_figure()
+
+
+def board_creation():
+    board = []
+    for i in range(500):
+        board.append([POINT] * 500)
+    return board
+
+
+def new_figure():
+    shape = random.choice(list(ALL_SHAPES.keys()))
+    new = {'shape': shape,
+           'color': random.randint(0, 3),
+           'turn': random.randint(0, len(ALL_SHAPES[shape]) - 1),
+           'x': 0,
+           'y': -2}
+    return new
+
 
 def terminate():
     pygame.quit()
