@@ -28,7 +28,7 @@ SHAPE_WIDTH = 5
 SHAPE_HEIGHT = 5
 
 POINT = '.'
-FIELD = 20
+FIELD = 20  # занимаемое фигурой место (фигура всегда состоит из 4 элементов)
 FH = 20
 FW = 10
 HIGH = 50
@@ -253,11 +253,77 @@ def play():
     move_left = False
     move_down = False
     move_right = False
-    ld = time.time()
-    ls = time.time()
-    lf = time.time()
+    ld = time.time()  # движение вниз
+    ls = time.time()  # движение в сторону
+    lf = time.time()  # падение
+    frequency = how_often_fall(score)
     now = new_figure()
     next = new_figure()
+    
+    while True:
+        if now == None:  # если нет падающей фигуры на поле
+            now = next
+            next = new_figure()
+            lf = time.time()
+
+            if not falling(board, now):
+                return
+
+        is_quit()
+        for event in pygame.event.get():
+            if event.type == KEYUP:
+                if event.key == K_p:
+                    pygame.mixer.music.stop()
+                    fon = pygame.transform.scale(load_image('Интро.png'), (500, 500))
+                    screen.blit(fon, (0, 0))
+                    print_text('Paused')
+                    pygame.mixer.music.play(-1)
+                    lf = time.time()
+                    ld = time.time()
+                    ls = time.time()
+                elif event.key == K_LEFT:
+                    move_left = False
+                elif event.key == K_RIGHT:
+                    move_right = False
+                elif event.key == K_DOWN:
+                    move_down = False
+
+            elif event.type == KEYDOWN:
+                if event.key == K_LEFT and falling(board, now, field_x=-1):
+                    now['x'] -= 1
+                    move_left = True
+                    move_right = False
+                    ls = time.time()
+
+                elif event.key == K_DOWN:
+                    move_down = True
+                    if falling(board, now, field_y=1):
+                        now['y'] += 1
+                    ld = time.time()
+
+                elif event.key == K_RIGHT and falling(board, now, field_x=1):
+                    now['x'] += 1
+                    move_right = True
+                    move_left = False
+                    ls = time.time()
+
+                elif event.key == K_UP or event.key == K_r:
+                    now['turn'] = (now['turn'] + 1) % len(ALL_SHAPES[now['shape']])
+                    if not falling(board, now):
+                        now['turn'] = (now['turn'] - 1) % len(ALL_SHAPES[now['shape']])
+                elif event.key == K_l:
+                    now['turn'] = (now['turn'] - 1) % len(ALL_SHAPES[now['shape']])
+                    if not falling(board, now):
+                        now['turn'] = (now['turn'] + 1) % len(ALL_SHAPES[now['shape']])
+
+                elif event.key == K_SPACE:
+                    move_down = False
+                    move_left = False
+                    move_right = False
+                    for i in range(1, FH):
+                        if not falling(board, now, field_y=i):
+                            break
+                    now['y'] += i - 1
 
 
 def board_creation():
@@ -275,6 +341,37 @@ def new_figure():
            'x': 0,
            'y': -2}
     return new
+
+
+def falling(board, figure, field_x=0, field_y=0):
+    for x in range(SHAPE_WIDTH):
+        for y in range(SHAPE_HEIGHT):
+            above = y + figure['y'] + field_y < 0
+            if above or ALL_SHAPES[figure['shape']][figure['turn']][y][x] == POINT:
+                continue
+            if not within_the_board(x + figure['x'] + field_x, y + figure['y'] + field_y):
+                return False
+            if board[x + figure['x'] + field_x][y + figure['y'] + field_y] != POINT:
+                return False
+    return True
+
+
+def is_quit():
+    for event in pygame.event.get(QUIT):
+        terminate()
+    for event in pygame.event.get(KEYUP):
+        if event.key == K_ESCAPE:
+            terminate()
+        pygame.event.post(event)
+        
+        
+def within_the_board(x, y):
+    return x >= 0 and x < FW and y < FH
+
+
+def how_often_fall(score):
+    frequency = 0.27 - ((int(score / 10) + 1) * 0.02)
+    return frequency
 
 
 def terminate():
