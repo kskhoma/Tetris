@@ -4,6 +4,7 @@ import os
 import sys
 import time
 from pygame.locals import *
+import sqlite3
 
 FPS = 25
 WHITE = (255, 255, 255)
@@ -252,6 +253,13 @@ def main():
 def play():
     board = board_creation()
     score = 0
+    con = sqlite3.connect(r'c:\Users\user\PycharmProjects\Tetris\topscore.db')
+    cur = con.cursor()
+    tops = cur.execute("""SELECT top FROM tabl
+                WHERE id=1""").fetchall()
+    for elem in tops:
+        tops = elem[0]
+    con.close()
     move_left = False
     move_down = False
     move_right = False
@@ -342,6 +350,23 @@ def play():
             if not falling(board, now, field_y=1):
                 append_f(board, now)
                 score += del_line(board)
+                con = sqlite3.connect(r'c:\Users\user\PycharmProjects\Tetris\topscore.db')
+                cur = con.cursor()
+                if tops < score:
+                    tops = cur.execute("""UPDATE tabl
+                            SET top = top + 1
+                            WHERE id=1""").fetchall()
+                    tops = cur.execute("""SELECT top FROM tabl
+                                WHERE id=1""").fetchall()
+                    for elem in tops:
+                        tops = elem[0]
+                else:
+                    tops = cur.execute("""SELECT top FROM tabl
+                                WHERE id=1""").fetchall()
+                    for elem in tops:
+                        tops = elem[0]
+                con.commit()
+                con.close()
                 frequency = how_often_fall(score)
                 now = None
             else:
@@ -351,6 +376,7 @@ def play():
         screen.fill(BLACK)
         set_board(board)
         print_score(score)
+        print_topscore(tops)
         set_next(next)
 
         if now != None:
@@ -418,9 +444,9 @@ def del_line(board):
     n = 0
     while y >= 0:
         if done(board, y):
-            for y in range(y, 0, -1):
+            for py in range(y, 0, -1):
                 for x in range(FW):
-                    board[x][y] = board[x][y-1]
+                    board[x][py] = board[x][py-1]
             for x in range(FW):
                 board[x][0] = POINT
             n += 1
@@ -486,6 +512,13 @@ def how_often_fall(score):
     return frequency
 
 
+def print_topscore(tops):
+    score_look = font2.render('Topscore: %s' % tops, True, WHITE)
+    score_rect = score_look.get_rect()
+    score_rect = (290, 200)
+    screen.blit(score_look, score_rect)
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -493,11 +526,3 @@ def terminate():
 
 if __name__ == '__main__':
     main()
-
-
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            terminate()
-
-
