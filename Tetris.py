@@ -9,17 +9,17 @@ FPS = 25
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (190, 190, 190)
-RED = (155, 0, 0)
-LRED = (175, 30, 30)
-YELLOW = (155, 155, 0)
-LYELLOW = (175, 175, 20)
-GREEN = (0, 155, 0)
-LGREEN = (30, 175, 20)
-BLUE = (0, 0, 155)
-LBLUE = (30, 30, 175)
+RED = (255, 0, 0)
+LRED = (220, 20, 60)
+YELLOW = (255, 140, 0)
+LYELLOW = (255, 165, 0)
+GREEN = (50, 205, 50)
+LGREEN = (154, 205, 50)
+BLUE = (30, 144, 255)
+LBLUE = (0, 191, 255)
 
 COLORS = (GREEN, YELLOW, RED, BLUE)
-LCOLORS = (LBLUE, LGREEN, LRED, LYELLOW)
+LCOLORS = (LGREEN, LYELLOW, LRED, LBLUE)
 
 DOWN = 0.1
 SIDE = 0.15
@@ -172,7 +172,7 @@ def check_key():
     for event in pygame.event.get([KEYDOWN, KEYUP]):
         if event.type == KEYDOWN or event.type == KEYUP:
             return event.key
-    return None
+    return is_quit()
 
 
 def load_image(name, colorkey=None):
@@ -188,10 +188,11 @@ def main():
     intro_text1 = ['Tetris']
     intro_text2 = ['Нажмите enter, чтобы начать']
     intro_text3 = ['',
-                   'p - пауза',
-                   'r - поворот фигуры по часовой стрелке',
-                   'l - поворот фигуры против часовой стрелки',
-                   'перемещение фигур осуществляется',
+                   '• p - пауза',
+                   '• стрелка вверх - поворот фигуры по',
+                   'часовой стрелке',
+                   '• / - поворот фигуры против часовой стрелки',
+                   '• перемещение фигур осуществляется',
                    'стрелками: влево, вниз, вправо']
     last = ['GAME OVER']
 
@@ -200,19 +201,18 @@ def main():
     font1 = pygame.font.Font(None, 180)
     font2 = pygame.font.Font(None, 30)
     font3 = pygame.font.Font(None, 110)
-    text_coord = 40
+    text_coord = 30
     for line in intro_text1:
         string_rendered = font1.render(line, 1, WHITE)
         intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
+        intro_rect.top = 35
         intro_rect.x = 80
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
     for line in intro_text2:
         string_rendered = font2.render(line, 1, WHITE)
         intro_rect = string_rendered.get_rect()
-        intro_rect.top = 180
+        intro_rect.top = 160
         intro_rect.x = 110
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
@@ -221,7 +221,7 @@ def main():
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
-        intro_rect.x = 40
+        intro_rect.x = 30
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
 
@@ -235,6 +235,8 @@ def main():
                 pygame.mixer.music.play(-1)
                 play()
                 pygame.mixer.music.stop()
+                fon = pygame.transform.scale(load_image('Интро.png'), (500, 500))
+                screen.blit(fon, (0, 0))
                 for line in last:
                     string_rendered = font3.render(line, 1, WHITE)
                     intro_rect = string_rendered.get_rect()
@@ -259,7 +261,7 @@ def play():
     frequency = how_often_fall(score)
     now = new_figure()
     next = new_figure()
-    
+
     while True:
         if now == None:  # если нет падающей фигуры на поле
             now = next
@@ -307,11 +309,11 @@ def play():
                     move_left = False
                     ls = time.time()
 
-                elif event.key == K_UP or event.key == K_r:
+                elif event.key == K_UP:
                     now['turn'] = (now['turn'] + 1) % len(ALL_SHAPES[now['shape']])
                     if not falling(board, now):
                         now['turn'] = (now['turn'] - 1) % len(ALL_SHAPES[now['shape']])
-                elif event.key == K_l:
+                elif event.key == K_SLASH:
                     now['turn'] = (now['turn'] - 1) % len(ALL_SHAPES[now['shape']])
                     if not falling(board, now):
                         now['turn'] = (now['turn'] + 1) % len(ALL_SHAPES[now['shape']])
@@ -324,6 +326,38 @@ def play():
                         if not falling(board, now, field_y=i):
                             break
                     now['y'] += i - 1
+
+        if (move_left or move_right) and time.time() - ls > SIDE:
+            if move_left and falling(board, now, field_x=-1):
+                now['x'] -= 1
+            elif move_right and falling(board, now, field_x=1):
+                now['x'] += 1
+            ls = time.time()
+
+        if move_down and time.time() - ld > DOWN and falling(board, now, field_y=1):
+            now['y'] += 1
+            ld = time.time()
+
+        if time.time() - lf > frequency:
+            if not falling(board, now, field_y=1):
+                append_f(board, now)
+                score += del_line(board)
+                frequency = how_often_fall(score)
+                now = None
+            else:
+                now['y'] += 1
+                lf = time.time()
+
+        screen.fill(BLACK)
+        set_board(board)
+        print_score(score)
+        set_next(next)
+
+        if now != None:
+            set_figure(now)
+
+        pygame.display.update()
+        clock.tick(FPS)
 
 
 def board_creation():
@@ -342,6 +376,84 @@ def new_figure():
            'y': -2}
     return new
 
+
+def set_board(board):
+    pygame.draw.rect(screen, WHITE, (LEFTSIDE - 3, HIGH - 7, (FW * FIELD) + 8, (FH * FIELD) + 8), 5)
+    pygame.draw.rect(screen, BLACK, (LEFTSIDE, HIGH, FIELD * FW, FIELD * FH))
+    for x in range(FW):
+        for y in range(FH):
+            set_field(x, y, board[x][y])
+
+
+def set_next(figure):
+    next_look = font2.render('Next:', True, WHITE)
+    next_rect = next_look.get_rect()
+    next_rect = (290, 90)
+    screen.blit(next_look, next_rect)
+    set_figure(figure, pix_x=290, pix_y=110)
+
+
+def xy_pix(fx, fy):
+    return (LEFTSIDE + (fx * FIELD)), (HIGH + (fy * FIELD))
+
+
+def set_field(fx, fy, color, pix_x=None, pix_y=None):
+    if color == POINT:
+        return
+    if pix_x == None and pix_y == None:
+        pix_x, pix_y = xy_pix(fx, fy)
+    pygame.draw.rect(screen, COLORS[color], (pix_x + 1, pix_y + 1, FIELD - 1, FIELD - 1))
+    pygame.draw.rect(screen, LCOLORS[color], (pix_x + 1, pix_y + 1, FIELD - 4, FIELD - 4))
+            
+            
+def print_score(score):
+    score_look = font2.render('Score: %s' % score, True, WHITE)
+    score_rect = score_look.get_rect()
+    score_rect = (290, 40)
+    screen.blit(score_look, score_rect)
+    
+    
+def del_line(board):
+    y = FH - 1
+    n = 0
+    while y >= 0:
+        if done(board, y):
+            for y in range(y, 0, -1):
+                for x in range(FW):
+                    board[x][y] = board[x][y-1]
+            for x in range(FW):
+                board[x][0] = POINT
+            n += 1
+        else:
+            y -= 1
+    return n
+
+
+def done(board, y):
+    for x in range(FW):
+        if board[x][y] == POINT:
+            return False
+    return True
+
+
+def append_f(board, figure):
+    for x in range(SHAPE_WIDTH):
+        for y in range(SHAPE_HEIGHT):
+            if ALL_SHAPES[figure['shape']][figure['turn']][y][x] != POINT:
+                board[x + figure['x']][y + figure['y']] = figure['color']
+                
+
+def set_figure(figure, pix_x=None, pix_y=None):
+    set_shape = ALL_SHAPES[figure['shape']][figure['turn']]
+
+    if pix_x == None and pix_y == None:
+        pix_x, pix_y = xy_pix(figure['x'], figure['y'])
+
+    for x in range(SHAPE_WIDTH):
+        for y in range(SHAPE_HEIGHT):
+            if set_shape[y][x] != POINT:
+                set_field(None, None, figure['color'], pix_x + (x * FIELD), pix_y + (y * FIELD))
+                
 
 def falling(board, figure, field_x=0, field_y=0):
     for x in range(SHAPE_WIDTH):
@@ -381,3 +493,11 @@ def terminate():
 
 if __name__ == '__main__':
     main()
+
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            terminate()
+
+
