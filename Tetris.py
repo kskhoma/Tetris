@@ -199,9 +199,6 @@ def main():
 
     fon = pygame.transform.scale(load_image('Интро.png'), (500, 500))
     screen.blit(fon, (0, 0))
-    font1 = pygame.font.Font(None, 180)
-    font2 = pygame.font.Font(None, 30)
-    font3 = pygame.font.Font(None, 110)
     text_coord = 30
     for line in intro_text1:
         string_rendered = font1.render(line, 1, WHITE)
@@ -230,21 +227,21 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                pygame.mixer.music.load('tetris_sound.mp3')
-                pygame.mixer.music.play(-1)
-                play()
-                pygame.mixer.music.stop()
-                fon = pygame.transform.scale(load_image('Интро.png'), (500, 500))
-                screen.blit(fon, (0, 0))
-                for line in last:
-                    string_rendered = font3.render(line, 1, WHITE)
-                    intro_rect = string_rendered.get_rect()
-                    intro_rect.top = 200
-                    intro_rect.x = 20
-                    text_coord += intro_rect.height
-                    screen.blit(string_rendered, intro_rect)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == K_RETURN:
+                    pygame.mixer.music.load('tetris_sound.mp3')
+                    pygame.mixer.music.play(-1)
+                    play()
+                    pygame.mixer.music.stop()
+                    fon = pygame.transform.scale(load_image('Интро.png'), (500, 500))
+                    screen.blit(fon, (0, 0))
+                    for line in last:
+                        string_rendered = font3.render(line, 1, WHITE)
+                        intro_rect = string_rendered.get_rect()
+                        intro_rect.top = 200
+                        intro_rect.x = 20
+                        text_coord += intro_rect.height
+                        screen.blit(string_rendered, intro_rect)
 
         pygame.display.flip()
         clock.tick(FPS)
