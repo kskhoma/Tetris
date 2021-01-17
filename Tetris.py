@@ -177,7 +177,7 @@ def check_key():
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join(r'c:\Users\user\PycharmProjects\Tetris', name)
+    fullname = os.path.join(r'materials', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -253,7 +253,7 @@ def main():
 def play():
     board = board_creation()
     score = 0
-    con = sqlite3.connect(r'c:\Users\user\PycharmProjects\Tetris\topscore.db')
+    con = sqlite3.connect(r'materials\topscore.db')
     cur = con.cursor()
     tops = cur.execute("""SELECT top FROM tabl
                 WHERE id=1""").fetchall()
@@ -350,7 +350,7 @@ def play():
             if not falling(board, now, field_y=1):
                 append_f(board, now)
                 score += del_line(board)
-                con = sqlite3.connect(r'c:\Users\user\PycharmProjects\Tetris\topscore.db')
+                con = sqlite3.connect(r'materials\topscore.db')
                 cur = con.cursor()
                 if tops < score:
                     tops = cur.execute("""UPDATE tabl
