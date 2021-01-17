@@ -414,9 +414,9 @@ def set_board(board):
 def set_next(figure):
     next_look = font2.render('Next:', True, WHITE)
     next_rect = next_look.get_rect()
-    next_rect = (290, 90)
+    next_rect = (290, 140)
     screen.blit(next_look, next_rect)
-    set_figure(figure, pix_x=290, pix_y=110)
+    set_figure(figure, pix_x=290, pix_y=190)
 
 
 def xy_pix(fx, fy):
@@ -435,7 +435,7 @@ def set_field(fx, fy, color, pix_x=None, pix_y=None):
 def print_score(score):
     score_look = font2.render('Score: %s' % score, True, WHITE)
     score_rect = score_look.get_rect()
-    score_rect = (290, 40)
+    score_rect = (290, 90)
     screen.blit(score_look, score_rect)
     
     
@@ -515,7 +515,7 @@ def how_often_fall(score):
 def print_topscore(tops):
     score_look = font2.render('Topscore: %s' % tops, True, WHITE)
     score_rect = score_look.get_rect()
-    score_rect = (290, 200)
+    score_rect = (290, 40)
     screen.blit(score_look, score_rect)
 
 
