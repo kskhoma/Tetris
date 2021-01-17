@@ -177,7 +177,7 @@ def check_key():
 
 
 def load_image(name, colorkey=None):
-    fullname = os.path.join(r'c:\Users\user\PycharmProjects\Tetris', name)
+    fullname = os.path.join(r'materials', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
@@ -253,7 +253,7 @@ def main():
 def play():
     board = board_creation()
     score = 0
-    con = sqlite3.connect(r'c:\Users\user\PycharmProjects\Tetris\topscore.db')
+    con = sqlite3.connect(r'materials\topscore.db')
     cur = con.cursor()
     tops = cur.execute("""SELECT top FROM tabl
                 WHERE id=1""").fetchall()
@@ -350,7 +350,7 @@ def play():
             if not falling(board, now, field_y=1):
                 append_f(board, now)
                 score += del_line(board)
-                con = sqlite3.connect(r'c:\Users\user\PycharmProjects\Tetris\topscore.db')
+                con = sqlite3.connect(r'materials\topscore.db')
                 cur = con.cursor()
                 if tops < score:
                     tops = cur.execute("""UPDATE tabl
@@ -414,9 +414,9 @@ def set_board(board):
 def set_next(figure):
     next_look = font2.render('Next:', True, WHITE)
     next_rect = next_look.get_rect()
-    next_rect = (290, 90)
+    next_rect = (290, 140)
     screen.blit(next_look, next_rect)
-    set_figure(figure, pix_x=290, pix_y=110)
+    set_figure(figure, pix_x=290, pix_y=190)
 
 
 def xy_pix(fx, fy):
@@ -435,7 +435,7 @@ def set_field(fx, fy, color, pix_x=None, pix_y=None):
 def print_score(score):
     score_look = font2.render('Score: %s' % score, True, WHITE)
     score_rect = score_look.get_rect()
-    score_rect = (290, 40)
+    score_rect = (290, 90)
     screen.blit(score_look, score_rect)
     
     
@@ -515,7 +515,7 @@ def how_often_fall(score):
 def print_topscore(tops):
     score_look = font2.render('Topscore: %s' % tops, True, WHITE)
     score_rect = score_look.get_rect()
-    score_rect = (290, 200)
+    score_rect = (290, 40)
     screen.blit(score_look, score_rect)
 
 
